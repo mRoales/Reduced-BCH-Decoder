@@ -1,7 +1,7 @@
 # Tiny Tapeout project information
 project:
   title:        "Reduced-BCH-Decoder"      # Project title
-  author:       "Manuel"      # Your name
+  author:       "Manuel Roales"      # Your name
   discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
   description:  "A reduced version of a BCH Decoder"      # One line description of what your project does
   language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
