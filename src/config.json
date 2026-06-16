@@ -33,7 +33,7 @@
 
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
-  "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS": false,
+  "SYNTH_ABC_DFF":  false,
   "SYNTH_READ_BLACKBOX_LIB": true,
   "SYNTH_STRATEGY": "AREA 0",
   "SYNTH_FLAT_TOP": true,
