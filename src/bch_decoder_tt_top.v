@@ -11,7 +11,7 @@
 // Last update: 2026-06-01
 //****************
 
-module tt_um_bch_decoder_tt_top #(
+module bch_decoder_tt_top #(
     parameter M = 6,               // Galois Field GF(2^6)
     parameter T = 4,              // Error correction capability (t=4)
     parameter P = 1,              // Parallelism (16 bits per clock cycle)
