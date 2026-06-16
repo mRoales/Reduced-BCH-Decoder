@@ -33,7 +33,7 @@
 
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
-  "SYNTH_EXTRA_MAPPING_COMMANDS": "dffunmap; techmap -map +/adff2dff.v;"
+  "SYNTH_EXTRA_MAPPING_COMMANDS": "dffunmap; techmap -map +/adff2dff.v;",
 
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
   "//": "!!! DO NOT CHANGE ANYTHING BELOW THIS POINT !!!",
