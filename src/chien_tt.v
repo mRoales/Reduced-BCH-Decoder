@@ -3,12 +3,12 @@
 `timescale 1ns / 1ps
 
 //****************
-// Module: bch_chien - iBMA for TinyTapeout
-// File:   bch_chien.v
+// Module: bch_chien_tt - iBMA for TinyTapeout
+// File:   bch_chien_tt.v
 // Description: Module dedicated to perform the bit-serial Chien search for BCH decoding.
 // Target board: GF180 ASIC TT run
-// Author: Fco. Javier Rubio
-// Last update: 2026-06-01
+// Author: Fco. Javier Rubio (Cleaned for ASIC Synthesis)
+// Last update: 2026-06-16
 //****************
 
 module bch_chien_tt #(parameter M=6, T=4, P=1, N_CODE = 59, N_PAD = 64)(
@@ -58,7 +58,17 @@ module bch_chien_tt #(parameter M=6, T=4, P=1, N_CODE = 59, N_PAD = 64)(
     end
 
     // -------------------------------------------------------------------------
-    // 2. Main FSM: Decoupled Update & Teardown
+    // 2. ASIC-Compliant Combinational Multiplier Network
+    // -------------------------------------------------------------------------
+    // We compute the Galois Field stepping functions continuously onto wires.
+    // This removes combinational logic from the clock edge, resolving ABC errors.
+    wire [M-1:0] next_chien_1 = update_mult_1(chien_reg[1]);
+    wire [M-1:0] next_chien_2 = update_mult_2(chien_reg[2]);
+    wire [M-1:0] next_chien_3 = update_mult_3(chien_reg[3]);
+    wire [M-1:0] next_chien_4 = update_mult_4(chien_reg[4]);
+
+    // -------------------------------------------------------------------------
+    // 3. Main FSM: Clean Synchronous Sequential Block
     // -------------------------------------------------------------------------
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -86,26 +96,20 @@ module bch_chien_tt #(parameter M=6, T=4, P=1, N_CODE = 59, N_PAD = 64)(
                 // --- PHASE 1: ACTIVE UPDATE ---
                 if (valid_in) begin
                     cycle_cnt  <= cycle_cnt + 1'b1;
-                    root_count <= root_count + cycle_roots; // Accumulate previous roots
+                    root_count <= root_count + cycle_roots; 
 
-                    // --- INJECT RTL TELEMETRY HERE ---
-                    if (eval_sum == {M{1'b0}}) begin
-                        $display("[RTL_TRACE] Chien Root Evaluated at cycle_cnt = %d", cycle_cnt);
-                    end
-                    // ---------------------------------
+                    // Telemetry $display removed to prevent unmapped cell errors in synthesis.
                     
-                    chien_reg[0] <= chien_reg[0]; // Constant term
-                    chien_reg[1] <= update_mult_1(chien_reg[1]);
-                    chien_reg[2] <= update_mult_2(chien_reg[2]);
-                    chien_reg[3] <= update_mult_3(chien_reg[3]);
-                    chien_reg[4] <= update_mult_4(chien_reg[4]);
+                    chien_reg[0] <= chien_reg[0]; 
+                    chien_reg[1] <= next_chien_1; // Safely register pre-calculated wires
+                    chien_reg[2] <= next_chien_2;
+                    chien_reg[3] <= next_chien_3;
+                    chien_reg[4] <= next_chien_4;
                 end
                 
                 // --- PHASE 2: DECOUPLED TEARDOWN ---
-                // Evaluates safely on the exact cycle the testbench drops valid_in
                 if (cycle_cnt == MAX_CYCLES && !valid_in) begin
                     busy <= 1'b0;
-                    // Mathematically perfect sum: historical root_count + the final combinational cycle_roots
                     if ((root_count + cycle_roots) != expected_errors)
                         uncorrectable_out <= 1'b1;
                 end
@@ -115,7 +119,7 @@ module bch_chien_tt #(parameter M=6, T=4, P=1, N_CODE = 59, N_PAD = 64)(
     end
 
     // -------------------------------------------------------------------------
-    // 3. Parallel Combinational Evaluation
+    // 4. Parallel Combinational Evaluation
     // -------------------------------------------------------------------------
     wire [M-1:0] eval_sum;
     assign eval_sum  = eval_pos_0(chien_reg[0], chien_reg[1], chien_reg[2], chien_reg[3], chien_reg[4]);
@@ -123,13 +127,14 @@ module bch_chien_tt #(parameter M=6, T=4, P=1, N_CODE = 59, N_PAD = 64)(
     genvar k;
     generate
         for (k = 0; k < P; k = k + 1) begin : gen_error_mask
-            // CRITICAL FIX: Align the padding boundary (PAD_BITS - 1)
-            assign error_mask[k] = ((eval_sum == {M{1'b0}}) && (((cycle_cnt * P) + k) >= (PAD_BITS - 1))) ? 1'b1 : 1'b0;
+            // CRITICAL ASIC FIX: Removed implicit multiplication (cycle_cnt * P). 
+            // Since P=1, we simplify it directly to cycle_cnt to avoid hardware multipliers.
+            assign error_mask[k] = ((eval_sum == {M{1'b0}}) && ((cycle_cnt + k) >= (PAD_BITS - 1))) ? 1'b1 : 1'b0;
         end
     endgenerate
 
     // -------------------------------------------------------------------------
-    // 4. Generated Combinational Functions (Forward Stepping a^+k)
+    // 5. Pure Logic Combinational Functions
     // -------------------------------------------------------------------------
     function [5:0] update_mult_1;
         input [5:0] d;
