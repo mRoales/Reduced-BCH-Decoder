@@ -165,7 +165,7 @@ module bch_kes_ibma_tt #(parameter M=6, T=4)(
     // -------------------------------------------------------------------------
     // 6. Decoupled Data Path (Saves Area, Closed and Validated)
     // -------------------------------------------------------------------------
-    always @(posedge clk) begin
+     always @(posedge clk) begin
         if (start && state == IDLE) begin
             Lambda_flat   <= {((T+1)*M){1'b0}} | 1'b1;
             B_flat        <= {((T+1)*M){1'b0}} | 1'b1;
@@ -180,8 +180,21 @@ module bch_kes_ibma_tt #(parameter M=6, T=4)(
             if (k == T) begin
                 update_B_flag <= ((delta_comb ^ gf_mult_out) != {M{1'b0}}) && ({L, 1'b0} < {1'b0, r});
             end
+            
+            // Explicitly maintain state to prevent implicit DFFE/Latches
+            Lambda_flat   <= Lambda_flat;
+            B_flat        <= B_flat;
+            gamma         <= gamma;
+            L             <= L;
         end 
         else if (state == UPDATE) begin
+            // We ensure every register gets an assignment in every branch,
+            // preventing the inference of unmapped Clock-Enable Flip-Flops.
+            gamma         <= (k == T && update_B_flag) ? delta_comb : gamma;
+            L             <= (k == T && update_B_flag) ? (r - L) : L;
+            delta_comb    <= (k == T) ? {M{1'b0}} : delta_comb;
+            update_B_flag <= update_B_flag;
+
             case (k)
                 3'd0: begin 
                     Lambda_flat[0*M +: M] <= lambda_update;
@@ -203,15 +216,20 @@ module bch_kes_ibma_tt #(parameter M=6, T=4)(
                     Lambda_flat[4*M +: M] <= lambda_update;
                     B_flat[4*M +: M]      <= update_B_flag ? current_Lambda : prev_B;
                 end
-            endcase
-
-            if (k == T) begin
-                delta_comb <= {M{1'b0}}; // Reset discrepancy accumulator for the next iteration
-                if (update_B_flag) begin
-                    L     <= r - L;
-                    gamma <= delta_comb;
+                default: begin
+                    Lambda_flat <= Lambda_flat;
+                    B_flat      <= B_flat;
                 end
-            end
+            endcase
+        end
+        else begin
+            // Safe fallback loop for IDLE or undefined states
+            Lambda_flat   <= Lambda_flat;
+            B_flat        <= B_flat;
+            gamma         <= gamma;
+            delta_comb    <= delta_comb;
+            L             <= L;
+            update_B_flag <= update_B_flag;
         end
     end
 
