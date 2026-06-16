@@ -36,6 +36,7 @@
   "SYNTH_ABC_DFF":  false,
   "SYNTH_READ_BLACKBOX_LIB": true,
   "SYNTH_STRATEGY": "AREA 0",
+  "QUIT_ON_UNMAPPED_CELLS" : false,
   "SYNTH_FLAT_TOP": true,
 
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
