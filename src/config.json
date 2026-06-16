@@ -35,8 +35,10 @@
 
   "PL_RESIZER_BUFFER_OUTPUT_PORTS": 0,
 
-  "//": "Allow use of specific cells",
-  "SYNTH_READ_BLACKBOX_LIB": 1,
+  "SYNTH_LATCH_MAP": "dir::latch_map.v",
+  "SYNTH_PARAMETERS": {
+    "DFF_UNMAP": 1
+  }
 
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
   "//": "!!! DO NOT CHANGE ANYTHING BELOW THIS POINT !!!",
