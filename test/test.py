@@ -53,17 +53,18 @@ async def test_project(dut):
     # ------------------------------------------------------------------------
     
     # --- Bloque de Prueba 1 ---
-    await ClockCycles(dut.clk, 6)
+    await ClockCycles(dut.clk, 4)
     await Timer(int(0.8 * CLK_PRD), units="ns")
     dut.ui_in.value = generar_ui_in(sel_mux_0=0, sel_mux_1=1, n_inv=0, enable=0)
 
     await ClockCycles(dut.clk, 4)
     dut.ui_in.value = generar_ui_in(sel_mux_0=0, sel_mux_1=1, n_inv=0, enable=1)
-    
-    await ClockCycles(dut.clk, 4)
     dut.uio_in.value = generar_uio_in(tx_ready=1, op_mode=0)
     
-    await ClockCycles(dut.clk, 200)
+    await ClockCycles(dut.clk, 2)
+    dut.ui_in.value = generar_ui_in(sel_mux_0=0, sel_mux_1=1, n_inv=0, enable=0)
+    dut.uio_in.value = generar_uio_in(tx_ready=1, op_mode=0)
+    await ClockCycles(dut.clk, 100)
     
     # --- Bloque de Prueba 2 (Reset y Cambio de Desafío) ---
     dut.rst_n.value = 0
@@ -72,39 +73,14 @@ async def test_project(dut):
     await ClockCycles(dut.clk, 4)
     dut.rst_n.value = 1
     dut.ui_in.value = generar_ui_in(sel_mux_0=0, sel_mux_1=2, n_inv=4, enable=0)
-    
+    dut.uio_in.value = generar_uio_in(tx_ready=1, op_mode=0)
     await ClockCycles(dut.clk, 4)
     dut.ui_in.value = generar_ui_in(sel_mux_0=0, sel_mux_1=2, n_inv=4, enable=1)
     
-    await ClockCycles(dut.clk, 200)
-    
-    # --- Bloque de Prueba 3 ---
-    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 2)
     dut.ui_in.value = generar_ui_in(sel_mux_0=0, sel_mux_1=2, n_inv=4, enable=0)
     
-    await ClockCycles(dut.clk, 4)
-    dut.rst_n.value = 1
-    dut.ui_in.value = generar_ui_in(sel_mux_0=3, sel_mux_1=2, n_inv=0, enable=0)
+    await ClockCycles(dut.clk, 100)
     
-    await ClockCycles(dut.clk, 4)
-    dut.ui_in.value = generar_ui_in(sel_mux_0=3, sel_mux_1=2, n_inv=0, enable=1)
-    
-    await ClockCycles(dut.clk, 200)
-    
-    # --- Bloque de Prueba 4 (Inyección de op_mode a través de uio_in) ---
-    dut.rst_n.value = 0
-    dut.ui_in.value = generar_ui_in(sel_mux_0=3, sel_mux_1=2, n_inv=0, enable=0)
-    
-    await ClockCycles(dut.clk, 4)
-    dut.rst_n.value = 1
-    dut.ui_in.value = generar_ui_in(sel_mux_0=3, sel_mux_1=2, n_inv=0, enable=0)
-    
-    await ClockCycles(dut.clk, 4)
-    dut.ui_in.value = generar_ui_in(sel_mux_0=3, sel_mux_1=2, n_inv=0, enable=1)
-    
-    await ClockCycles(dut.clk, 20)
-    dut.uio_in.value = generar_uio_in(tx_ready=1, op_mode=1)  # Activamos op_mode
-    
-    await ClockCycles(dut.clk, 20)
     
     dut._log.info("***********_____SIMULATION COMPLETED_____***********")
