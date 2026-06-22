@@ -39,7 +39,7 @@
   "ERROR_ON_UNMAPPED_CELLS" : false,
   "SYNTH_FLAT_TOP": true,
   
-  "//": "We are resetting the list of the circuits that gives an error when we do an STA"
+  "//": "We are resetting the list of the circuits that gives an error when we do an STA",
   "TIMING_VIOLATION_CORNERS": [],
   "HOLD_VIOLATION_CORNERS": [],
   
